@@ -39,9 +39,3 @@ ITEM is spawned in a random cell not yet occupied by SNAKE. Whenever ITEM is cha
 PADDING has two elements, a score and a coordinate for snake. The score is printed at the top left of the padding and the coordinates are printed in the top right.
 
 SCORE is incremented by the length of the snake every time an ITEM is changed into SNAKE.
-
-SCORE is an integer, to print it it is converted to a string. As long as the SCORE devided by 10 to the ith power is greater than zero print the next index in the string representation of SCORE. The score is printed in padding (0,0) and incremented to the right i cells.
-
-
-
-> Written with [StackEdit](https://stackedit.io/).
