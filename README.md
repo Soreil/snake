@@ -23,9 +23,9 @@ in case of SNAKE there is also a TTL, this is decremented by one every game tick
 
 >#### DIRECTION in a enum of the following values:
 - LEFT
-- DOWN
 - UP
 - RIGHT
+- DOWN
 
 A direction is changed by pressing the corresponding arrow key. By default the direction is set to RIGHT. The DIRECTION value is checked every game tick, in case no arrow keys were hit the old direction is used. After this the snake is moved.
 
