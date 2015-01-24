@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"math/rand"
 	"time"
 
@@ -50,9 +51,13 @@ func (bPtr *board) newApple() {
 	termbox.SetCell(b.apple.x, b.apple.y, ' ', termbox.ColorDefault, termbox.ColorRed)
 }
 
-func moveSnake(sPtr *snake, bPtr *board) {
+func moveSnake(sPtr *snake, bPtr *board) error {
+	//error is nil
+	var err error
+
 	snake := sPtr
 	board := bPtr
+	//set direction
 	switch snake.direction {
 	case LEFT:
 		board.snake.x--
@@ -63,7 +68,16 @@ func moveSnake(sPtr *snake, bPtr *board) {
 	case DOWN:
 		board.snake.y++
 	}
+
+	//if the snake collides with itself return with an error
+	for _, v := range board.snakeParts {
+		if v == board.snake {
+			err = errors.New("Snake collided with itself")
+		}
+	}
+
 	board.snakeParts = append(board.snakeParts, board.snake)
+
 	//do not remove the last part of the snake and increase the length
 	if board.apple == board.snake {
 		board.newApple()
@@ -75,6 +89,7 @@ func moveSnake(sPtr *snake, bPtr *board) {
 	}
 	//Draw Snake starting position
 	termbox.SetCell(board.snake.x, board.snake.y, ' ', termbox.ColorDefault, termbox.ColorWhite)
+	return err
 }
 
 func main() {
@@ -108,7 +123,7 @@ func main() {
 	//Spawn an Apple
 	board.newApple()
 
-	//Collect key presses
+	//key presses
 	event_queue := make(chan termbox.Event)
 	go func() {
 		for {
@@ -116,7 +131,16 @@ func main() {
 		}
 	}()
 
+	//collect frame draw times
+	frameDrawTimer := make(chan time.Time)
+	go func() {
+		for {
+			frameDrawTimer <- <-time.After(time.Second / 15)
+		}
+	}()
+
 	for board.snake.x <= board.width && board.snake.x >= 0 && board.snake.y <= board.height && board.snake.y >= 0 {
+		//gameError := make(chan error)
 		select {
 		//If an arrow key has been pressed move the direction to the arrow key
 		case event := <-event_queue:
@@ -134,10 +158,16 @@ func main() {
 				}
 			}
 			//After a frame time is done move and draw
-			//TODO: This should be changed since at the moment if a key is pressed the time resets
-		case <-time.After(time.Second / 15):
-			moveSnake(snake, board)
+		case <-frameDrawTimer:
+			err := moveSnake(snake, board)
 			termbox.Flush()
+			if err != nil {
+				board.snake.x = -1
+				board.snake.y = -1
+				//gameError <- err
+			}
+			//case err := <-gameError:
+			//	fmt.Print(err)
 		}
 	}
 	termbox.SetCell(0+board.width/2, board.height/2, 'G', termbox.ColorWhite, termbox.ColorRed)
